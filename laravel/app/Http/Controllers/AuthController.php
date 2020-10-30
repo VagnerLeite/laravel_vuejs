@@ -25,11 +25,27 @@ class AuthController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function register(Request $request){
-        $validate = Validator::make($request->all(), [
+        
+        $regras = [
             'name'      => 'required',
             'email'     => 'required|email|unique:users',
-            'password'  => 'required|min:4|confirmed',
-        ]);        
+            'password'  => 'required|min:6|confirmed',
+        ];
+
+        $messages = [
+            'name.required'      => 'Digite o seu nome!',
+            'email.required'     => 'Digite seu email!',
+            'email.email'        => 'Digite um endereço de email valido!',
+            'email.unique:users' => 'Email ja cadastrado!',
+            'email.required'     => 'Digite seu email!',
+            'password.required'  => 'Digite sua senha',
+            'password.min'     => 'Senha nao pode ser menor do que 6 digitos!',
+            'password.confirmed' => 'Confirme a senha corretamente!',
+            
+        ];
+
+        $validate = $request->validate($regras,$messages);
+
         if ($validate->fails()){
             return response()->json([
                 'status' => 'error',
@@ -41,8 +57,12 @@ class AuthController extends Controller
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->status = 'Active';
-        $user->save();       
-        return response()->json(['status' => 'success'], 200);
+        $user->save();
+
+        $credentials = request(['email', 'password']);
+        $token = auth()->attempt($credentials);   
+
+        return $this->respondWithToken($token, $request->email);
     } 
 
     /**
