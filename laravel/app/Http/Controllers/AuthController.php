@@ -43,15 +43,9 @@ class AuthController extends Controller
             'password.confirmed' => 'Confirme a senha corretamente!',
             
         ];
-
+        
         $validate = $request->validate($regras,$messages);
-
-        if ($validate->fails()){
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validate->errors()
-            ], 422);
-        }        
+               
         $user = new User;
         $user->name = $request->name;
         $user->email = $request->email;
